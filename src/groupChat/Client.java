@@ -32,7 +32,7 @@ public class Client {
             Scanner scanner = new Scanner(System.in);
             while (socket.isConnected()) {
                 String messageToSend = scanner.nextLine();
-                bufferedWriter.write(username + ": " + messageToSend);
+                bufferedWriter.write(username + ": " + messageToSend);    //todo პირველი ვინც შევა სერვერზე ავტომატურად ადმინად ჩაითვალოს და დამატებითი უფლებები ქონდესგი
                 bufferedWriter.newLine();
                 bufferedWriter.flush();
             }

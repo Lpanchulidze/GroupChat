@@ -8,6 +8,7 @@ import java.net.URISyntaxException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.ConcurrentModificationException;
 
 public class ClientHandler implements Runnable   {
 
@@ -30,7 +31,6 @@ public class ClientHandler implements Runnable   {
         }
     }
 
-
         @Override
         public void run() {
             String messageFromClient;
@@ -39,50 +39,49 @@ public class ClientHandler implements Runnable   {
                 try {
                     messageFromClient = bufferedReader.readLine();
                     broadcastMessage(messageFromClient);
-                } catch (IOException e) {
+                } catch (IOException | ConcurrentModificationException e) {
                     closeEverything(socket, bufferedReader, bufferedWriter);
                     break;
                 }
             }
         }
 
-
     public void broadcastMessage(String messageToSend) {
             for (ClientHandler clientHandler : clientHandlers) {
+                String commands = "/commands";
+                String time = "/time";
+                String help = "/help";
+                String url1 = "http://www.google.com";
                 try {
-                    if (!clientHandler.clientUsername.equals(clientUsername) && (!messageToSend.contains("/commands") || !messageToSend.contains("/help") || !messageToSend.contains("/exit"))) {
+                    if (!clientHandler.clientUsername.equals(clientUsername) && !messageToSend.contains(commands) && !messageToSend.contains(help) && !messageToSend.contains(time)) {
                         clientHandler.bufferedWriter.write(messageToSend);
                         clientHandler.bufferedWriter.newLine();
                         clientHandler.bufferedWriter.flush();
 
                     }
                     if(clientHandler.clientUsername.equals(clientUsername)) {
-                        if(messageToSend.contains("/commands")) {
-                            clientHandler.bufferedWriter.write("Available commands: /time, /help, /exit");
+                        if(messageToSend.contains(commands)) {
+                            clientHandler.bufferedWriter.write("Available commands: "+time+", "+help);
                             clientHandler.bufferedWriter.newLine();
                             clientHandler.bufferedWriter.flush();
 
-                        } else if(messageToSend.contains("/time")) {
+                        } else if(messageToSend.contains(time)) {
                             String timeStamp = new SimpleDateFormat("yyyy/MM/dd HH:mm").format(Calendar.getInstance().getTime());
 
                             clientHandler.bufferedWriter.write(timeStamp);
                             clientHandler.bufferedWriter.newLine();
                             clientHandler.bufferedWriter.flush();
 
-                        } else if(messageToSend.contains("/help")) {
+                        } else if(messageToSend.contains(help)) {
                             Desktop desktop = java.awt.Desktop.getDesktop();
-                            URI url = new URI("http://www.google.com");
+                            URI url = new URI(url1);
                             clientHandler.bufferedWriter.write("opening " + url);
                             clientHandler.bufferedWriter.newLine();
                             clientHandler.bufferedWriter.flush();
                             desktop.browse(url);
-
-                        } else if(messageToSend.contains("/exit")) {
-                            clientHandlers.remove(this);
-                            broadcastMessage("SERVER: " + clientUsername + " has left the chat!");
                         }
                     }
-                } catch (IOException | URISyntaxException e) {
+                } catch (IOException | URISyntaxException | ConcurrentModificationException e) {
                     closeEverything(socket, bufferedReader, bufferedWriter);
                 }
             }
